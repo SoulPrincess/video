@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="__STATIC__/plugins/layui/layui.js"></script>
+    <style>
+        .header span{
+            background: #009688;margin-left:30px;padding: 10px;color:#fff;
+        }
+        .header div{
+            border-bottom: 2px solid #009688;margin-top:8px;
+        }
+        .header button{
+            float: right;margin-top:-5px;
+        }
+    </style>
+</head>
+<body style="padding:10px">
+<div class="header">
+    <span>首页视频</span>
+    <button class="layui-btn layui-btn-sm" onclick="add()">添加</button>
+    <div></div>
+</div>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>位置</th>
+        <th>排序</th>
+        <th>标题</th>
+        <th>URL</th>
+        <th>图片</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {volist name="data.lists" id="vo"}
+    <tr>
+        <td>{$vo.id}</td>
+        <td>{$vo.type==0?'首页':'其他'}</td>
+        <td>{$vo.sort}</td>
+        <td>{$vo.title} </td>
+        <td>{$vo.url} </td>
+        <td><img src="{$vo.img}" alt="" style="height:30px;"></td>
+        <td>
+            <button class="layui-btn layui-btn-xs" onclick="add({$vo.id})">编辑</button>
+            <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="del({$vo.id})">删除</button>
+        </td>
+    </tr>
+    {/volist}
+    </tbody>
+</table>
+</body>
+</html>
+<script type="text/javascript">
+    layui.use(['layer'],function() {
+        $ = layui.jquery;
+        layer = layui.layer;
+    });
+    //添加事件
+    function add(id){
+        layer.open({
+            type: 2,
+            title:id>0?'编辑幻灯片':'添加幻灯片',
+            shade:0.3,
+            area:['480px','420px'],
+            content: '/admin.php/admins/Slide/add_first?id='+id
+        });
+    }
+    function del(id){
+        //询问框
+        layer.confirm('确定要删除吗？', {
+            icon:3,
+            btn: ['确定','取消'] //按钮
+        }, function(){
+            $.post('/admin.php/admins/Slide/delete',
+                {'id':id},function (res){
+                    if(res.code>0){
+                        layer.alert(res.msg,{icon:2});
+                    }else{
+                        layer.msg(res.msg);
+                        setTimeout(function(){
+                            window.location.href='/admin.php/admins/Slide/index'
+                        },1000)
+                    }
+                },'json')
+        }, function(){
+
+        });
+    }
+
+</script>

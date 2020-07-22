@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="__STATIC__/plugins/layui/layui.js"></script>
+</head>
+<body style="padding:10px">
+    <form class="layui-form">
+        <input type="hidden" value="{$role.gid}" name="gid">
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名称</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" name="title" value="{$role.title}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限菜单</label>
+            {volist name="menus" id="vo"}
+            <hr>
+            <div class="layui-input-block">
+                <input type="checkbox" name="menu[{$vo.mid}]" lay-skin="primary" title="{$vo.title}" {:isset($role['rights'])&&$role['rights']&&in_array($vo.mid,$role['rights'])?'checked':''}>
+                <hr>
+                {volist name="vo.children" id="cvo"}
+                <input type="checkbox" name="menu[{$cvo.mid}]" lay-skin="primary" title="{$cvo.title}" {:isset($role['rights'])&&$role['rights']&&in_array($cvo.mid,$role['rights'])?'checked':''}>
+                {/volist}
+            </div>
+            {/volist}
+        </div>
+    </form>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" onclick="save()">保存</button>
+        </div>
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    layui.use(['layer','form'],function() {
+        $ = layui.jquery;
+        layer = layui.layer;
+        form = layui.form;
+    });
+    function save(){
+        var title=$.trim($('input[name="title"]').val());
+        if(title==''){
+            layer.alert('请输入角色名称',{icon:2});
+            return;
+        }
+        $.post('/admin.php/admins/roles/save',$('form').serialize(),function (res){
+            if(res.code>0){
+                layer.alert(res.msg,{icon:2});
+            }else{
+                layer.msg(res.msg,{icon:1});
+                setTimeout(function(){
+                    parent.window.location.href='/admin.php/admins/roles/index'
+                },1000)
+            }
+        },'json')
+    }
+</script>

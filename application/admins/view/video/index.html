@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="__STATIC__/plugins/layui/layui.js"></script>
+    <style>
+        .header span{
+            background: #009688;margin-left:30px;padding: 10px;color:#fff;
+        }
+        .header div{
+          border-bottom: 2px solid #009688;margin-top:8px;
+        }
+        .header button{
+            float: right;margin-top:-5px;
+        }
+    </style>
+</head>
+<body style="padding:10px">
+    <div class="header">
+        <span>影片列表</span>
+        <button class="layui-btn layui-btn-sm" onclick="add()">添加</button>
+        <div></div>
+    </div>
+    <div class="layui-form-item" style="margin-top:10px">
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="wd" id="wd" placeholder="请输入影片标题" value="{$data.wd}">
+        </div>
+        <button class="layui-btn layui-btn-primary" onclick="search()"><i class="layui-icon">&#xe615;</i>   搜索</button>
+    </div>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>频道</th>
+        <th>资费</th>
+        <th>地区</th>
+        <th>影片名称</th>
+        <th>PV</th>
+        <th>评分</th>
+        <th>状态</th>
+        <th>添加时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {volist name="data.lists.lists" id="vo"}
+        <tr>
+            <td>{$vo.id}</td>
+            <td>{:isset($data['label'][$vo.channel_id])?$data['label'][$vo.channel_id]['title']:''}</td>
+            <td>{:isset($data['label'][$vo.charge_id])?$data['label'][$vo.charge_id]['title']:''}</td>
+            <td>{:isset($data['label'][$vo.area_id])?$data['label'][$vo.area_id]['title']:''}</td>
+            <td>{$vo.title}</td>
+            <td>{$vo.pv}</td>
+            <td>{$vo.score}</td>
+            <td>{$vo.status==0?'<span style="color:red">下线</span>':'<span style="color:green">发布</span>'}</td>
+            <td>{:date('Y-m-d H:i:s',$vo.add_time)}</td>
+            <td>
+                <button class="layui-btn layui-btn-xs" onclick="add({$vo.id})">编辑</button>
+                <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="del({$vo.id})">删除</button>
+            </td>
+        </tr>
+    {/volist}
+    </tbody>
+</table>
+<div id="page"></div>
+</body>
+</html>
+<script type="text/javascript">
+    layui.use(['layer','laypage'],function() {
+        $ = layui.jquery;
+        layer = layui.layer;
+        laypage = layui.laypage;
+        //分页
+        laypage.render({
+            elem: 'page'
+            ,count: {$data.lists.total}
+            ,limit: {$data.pagesize}
+            ,curr: {$data.page}
+            ,jump: function(obj, first){
+                //首次不执行
+                if(!first){
+                    search(obj.curr);
+                    // window.location.href="?page="+obj.curr;
+                }
+            }
+        });
+    });
+    //添加事件
+    function add(id){
+        layer.open({
+            type: 2,
+            title:id>0?'编辑影片':'添加影片',
+            shade:0.3,
+            area:['700px','420px'],
+            content: '/admin.php/admins/Video/add?id='+id
+        });
+    }
+    function del(id){
+        //询问框
+        layer.confirm('确定要删除吗？', {
+            btn: ['确定','取消'] //按钮
+        }, function(){
+            $.post('/admin.php/admins/Video/delete',
+                {'id':id},function (res){
+                    if(res.code>0){
+                        layer.alert(res.msg,{icon:2});
+                    }else{
+                        layer.msg(res.msg);
+                        setTimeout(function(){
+                            window.location.href='/admin.php/admins/Video/index'
+                        },1000)
+                    }
+            },'json')
+        }, function(){
+
+        });
+    }
+    function search(currpage){
+        var wd= $.trim($('#wd').val());
+        var url='/admin.php/admins/Video/index?page='+currpage;
+        if(wd){
+            url+=' &wd='+wd;
+        }
+        window.location.href=url;
+    }
+
+</script>
